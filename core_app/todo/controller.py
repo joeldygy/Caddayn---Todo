@@ -2,15 +2,15 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from core_app.models import (
+from core_app.todo.models import (
     get_all_todos, create_todo, get_todo,
     update_todo, delete_todo
 )
-from core_app.serializer.todo_request import (
+from core_app.todo.serializer.todo_request import (
     TodoCreateRequestSerializer,
     TodoUpdateRequestSerializer
 )
-from core_app.serializer.todo_response import TodoResponseSerializer
+from core_app.todo.serializer.todo_response import TodoResponseSerializer
 
 
 class TodoController:

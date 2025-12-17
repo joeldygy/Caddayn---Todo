@@ -1,7 +1,8 @@
 from rest_framework.response import Response
 from rest_framework import status
 
-from core_app.models import (
+from core_app.common.utils import CommonUtils
+from core_app.todo.models import (
     get_all_todos,
     create_todo,
     get_todo,
@@ -9,16 +10,17 @@ from core_app.models import (
     delete_todo
 )
 
-from core_app.serializer.todo_request import (
+from core_app.todo.serializer.todo_request import (
     TodoCreateRequestSerializer,
     TodoUpdateRequestSerializer
 )
 
-from core_app.serializer.todo_response import TodoResponseSerializer
-from core_app.utils import TodoUtils
+from core_app.todo.serializer.todo_response import TodoResponseSerializer
+from core_app.todo.utils import TodoUtils
 
 
 class TodoView:
+
 
     def todo_list(self, request):
         todos = get_all_todos()
@@ -28,7 +30,7 @@ class TodoView:
         mapped = TodoUtils().mapper(serializer.data)
 
         return Response(
-            data={"message": "Todos fetched successfully", "data": mapped},
+            data={"message": "Todo fetched successfully", "data": mapped},
             status=status.HTTP_200_OK
         )
 
@@ -38,16 +40,12 @@ class TodoView:
         if serializer.is_valid():
             dto = serializer.to_dto()
             todo = create_todo(dto.__dict__)
-
             return Response(
-                data={
-                    "message": "Todo created successfully",
-                    "data": TodoResponseSerializer(todo).data
-                },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"status": False, "message": "Validation failed", "errors": serializer.errors}
             )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_201_CREATED, data=CommonUtils.success_response_data(message="Data successfully created"))
 
     def todo_detail(self, request, id):
         try:

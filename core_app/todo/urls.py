@@ -1,5 +1,5 @@
 from django.urls import path
-from core_app.controller import TodoController
+from core_app.todo.controller import TodoController
 
 urlpatterns = [
     path('', TodoController.list, name='todo_list'),

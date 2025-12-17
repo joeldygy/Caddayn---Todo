@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core_app.dataclass import TodoDTO
+from core_app.todo.dataclass import TodoDTO
 
 
 class TodoCreateRequestSerializer(serializers.Serializer):
