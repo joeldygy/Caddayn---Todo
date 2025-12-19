@@ -11,7 +11,7 @@ class Todo(models.Model):
         return self.title
 
 
-def get_all_todos():
+def get_all_todos(self):
     return Todo.objects.all()
 
 

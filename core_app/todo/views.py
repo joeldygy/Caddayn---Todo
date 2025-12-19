@@ -1,5 +1,6 @@
-from rest_framework.response import Response
+from django.db import transaction
 from rest_framework import status
+from rest_framework.response import Response
 
 from core_app.common.utils import CommonUtils
 from core_app.todo.models import (
@@ -9,94 +10,94 @@ from core_app.todo.models import (
     update_todo,
     delete_todo
 )
-
-from core_app.todo.serializer.todo_request import (
-    TodoCreateRequestSerializer,
-    TodoUpdateRequestSerializer
-)
-
-from core_app.todo.serializer.todo_response import TodoResponseSerializer
 from core_app.todo.utils import TodoUtils
+from core_app.todo.serializer.todo_response import TodoResponseSerializer
 
 
 class TodoView:
 
+    def __init__(self):
+        self.data_created = "Todo created successfully"
+        self.data_fetched = "Todo fetched successfully"
+        self.data_updated = "Todo updated successfully"
+        self.data_deleted = "Todo deleted successfully"
+        self.data_not_found = "Todo not found"
 
-    def todo_list(self, request):
+        super().__init__()
+
+
+    def create_extract(self, params, token_payload=None):
+        with transaction.atomic():
+            create_todo(params.__dict__)
+
+        return Response(
+            status=status.HTTP_201_CREATED,
+            data=CommonUtils.success_response_data(
+                message=self.data_created
+            )
+        )
+
+
+    def get_all_extract(self, params=None, token_payload=None):
         todos = get_all_todos()
         serializer = TodoResponseSerializer(todos, many=True)
 
-        # map using utils
         mapped = TodoUtils().mapper(serializer.data)
 
         return Response(
-            data={"message": "Todo fetched successfully", "data": mapped},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
+            data=CommonUtils.success_response_data(
+                message=self.data_fetched,
+                data=mapped
+            )
         )
 
-    def todo_create(self, request):
-        serializer = TodoCreateRequestSerializer(data=request.data)
 
-        if serializer.is_valid():
-            dto = serializer.to_dto()
-            todo = create_todo(dto.__dict__)
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={"status": False, "message": "Validation failed", "errors": serializer.errors}
-            )
-
-        return Response(status=status.HTTP_201_CREATED, data=CommonUtils.success_response_data(message="Data successfully created"))
-
-    def todo_detail(self, request, id):
-        try:
-            todo = get_todo(id)
-        except Exception:  # You can replace Exception with specific DoesNotExist if using Django ORM
-            return Response(
-                {"message": "Todo not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def get_extract(self, params, token_payload=None):
+        todo = get_todo(params.id)
+        if not todo:
+            raise ValueError(self.data_not_found)
 
         serializer = TodoResponseSerializer(todo)
+
         return Response(
-            data={"message": "Todo fetched successfully", "data": serializer.data},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
+            data=CommonUtils.success_response_data(
+                message=self.data_fetched,
+                data=serializer.data
+            )
         )
 
-    def todo_update(self, request, id):
-        try:
-            existing = get_todo(id)
-        except Exception:
-            return Response(
-                {"message": "Todo not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def update_extract(self, params, token_payload=None):
+        todo = get_todo(params.id)
+        if not todo:
+            raise ValueError(self.data_not_found)
 
-        serializer = TodoUpdateRequestSerializer(data=request.data)
+        with transaction.atomic():
+            updated = update_todo(params.id, params.__dict__)
 
-        if serializer.is_valid():
-            dto = serializer.to_dto(existing)
-            updated = update_todo(id, dto.__dict__)
-
-            return Response(
-                data={
-                    "message": "Todo updated successfully",
-                    "data": TodoResponseSerializer(updated).data
-                },
-                status=status.HTTP_200_OK
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def todo_delete(self, request, id):
-        try:
-            delete_todo(id)
-        except Exception:
-            return Response(
-                {"message": "Todo not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        serializer = TodoResponseSerializer(updated)
 
         return Response(
-            {"message": "Todo deleted successfully"},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
+            data=CommonUtils.success_response_data(
+                message=self.data_updated,
+                data=serializer.data
+            )
+        )
+
+
+    def delete_extract(self, params, token_payload=None):
+        todo = get_todo(params.id)
+        if not todo:
+            raise ValueError(self.data_not_found)
+
+        with transaction.atomic():
+            delete_todo(params.id)
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data=CommonUtils.success_response_data(
+                message=self.data_deleted
+            )
         )

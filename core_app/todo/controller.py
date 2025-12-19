@@ -1,50 +1,78 @@
 from rest_framework.decorators import api_view
+from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework import status
 
-from core_app.todo.models import (
-    get_all_todos, create_todo, get_todo,
-    update_todo, delete_todo
-)
-from core_app.todo.serializer.todo_request import (
-    TodoCreateRequestSerializer,
-    TodoUpdateRequestSerializer
-)
+from core_app.todo.views import TodoView
+from core_app.todo.serializer.todo_request import TodoCreateRequestSerializer
+from core_app.todo.serializer.todo_request import TodoUpdateRequestSerializer
 from core_app.todo.serializer.todo_response import TodoResponseSerializer
+from core_app.common.utils import CommonUtils
 
 
 class TodoController:
 
-    @staticmethod
-    @api_view(['GET'])
-    def list(request):
-        todos = get_all_todos()
-        serializer = TodoResponseSerializer(todos, many=True)
-        return Response(serializer.data)
 
-    @staticmethod
     @api_view(['POST'])
-    def create(request):
-        todo = create_todo(request.data)
-        serializer = TodoCreateRequestSerializer(todo)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def create(request: Request) -> Response:
+        serializer = TodoCreateRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-    @staticmethod
+        params = serializer.to_dto()
+        token_payload = CommonUtils.get_token_payload(request)
+
+        return TodoView().create_extract(
+            params=params,
+            token_payload=token_payload
+        )
+
     @api_view(['GET'])
-    def detail(request, id):
-        todo = get_todo(id)
-        serializer = TodoResponseSerializer(todo)
-        return Response(serializer.data)
+    def get_all(request: Request) -> Response:
+        serializer = TodoResponseSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
 
-    @staticmethod
+        params = serializer.to_dto()
+        token_payload = CommonUtils.get_token_payload(request)
+
+        return TodoView().get_all_extract(
+            params=params,
+            token_payload=token_payload
+        )
+
+    @api_view(['GET'])
+    def get(request: Request) -> Response:
+        serializer = TodoResponseSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        params = serializer.to_dto()
+        token_payload = CommonUtils.get_token_payload(request)
+
+        return TodoView().get_extract(
+            params=params,
+            token_payload=token_payload
+        )
+
     @api_view(['PUT'])
-    def update(request, id):
-        todo = update_todo(id, request.data)
-        serializer = TodoUpdateRequestSerializer(todo)
-        return Response(serializer.data)
+    def update(request: Request) -> Response:
+        serializer = TodoUpdateRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-    @staticmethod
+        params = serializer.to_dto()
+        token_payload = CommonUtils.get_token_payload(request)
+
+        return TodoView().update_extract(
+            params=params,
+            token_payload=token_payload
+        )
+
     @api_view(['DELETE'])
-    def delete(request, id):
-        delete_todo(id)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(request: Request) -> Response:
+        serializer = TodoResponseSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        params = serializer.to_dto()
+        token_payload = CommonUtils.get_token_payload(request)
+
+        return TodoView().delete_extract(
+            params=params,
+            token_payload=token_payload
+        )

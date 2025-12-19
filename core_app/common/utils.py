@@ -1,30 +1,42 @@
-import random
-import urllib
-
-from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework import status
+
 
 class CommonUtils:
-    def __init__(self) -> None:
-        super().__init__()
-
-
 
     @staticmethod
-    def success_response_data(message, data: list | dict = None, image=False):
-        if image:
-            return message
-        if data is None and message is None:
-            return {'status': True}
-        if message is None:
-            return {'status': True, 'data': data}
-        if data is None:
-            return {'status': True, 'message': message}
-        return {'status': True, 'message': message, 'data': data}
-
-
+    def get_token_payload(request: Request) -> dict:
+        return getattr(request, "payload", {})
 
     @staticmethod
-    def error_response_data(message: str, error: list[str] | str):
-        return {'status': False, 'message': message, 'error': error}
+    def success_response(
+        message: str,
+        data=None,
+        status_code=status.HTTP_200_OK
+    ) -> Response:
+        response = {
+            "status": True,
+            "message": message
+        }
+
+        if data is not None:
+            response["data"] = data
+
+        return Response(response, status=status_code)
+
+    @staticmethod
+    def error_response(
+        message: str,
+        errors=None,
+        status_code=status.HTTP_400_BAD_REQUEST
+    ) -> Response:
+        response = {
+            "status": False,
+            "message": message
+        }
+
+        if errors is not None:
+            response["errors"] = errors
+
+        return Response(response, status=status_code)
