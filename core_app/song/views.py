@@ -9,6 +9,7 @@ from core_app.song.models import (
     update_song,
     delete_song
 )
+from core_app.artist.models import get_artist
 
 from core_app.song.serializer.song_request import (
     SongCreateRequestSerializer,
@@ -47,6 +48,13 @@ class SongView:
             )
 
         dto = serializer.to_dto()
+        try:
+            artist = get_artist(dto.artist_id)
+        except Exception:
+            return Response(
+                {"message": "Artist not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
         create_song(dto.__dict__)
 
         return Response(
@@ -89,6 +97,15 @@ class SongView:
             )
 
         dto = serializer.to_dto(existing)
+        artist = existing.artist
+        if hasattr(dto, "artist_id"):
+            try:
+                artist = get_artist(dto.artist_id)
+            except Exception:
+                return Response(
+                    {"message": "Artist not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
         updated = update_song(id, dto.__dict__)
 
         return Response(

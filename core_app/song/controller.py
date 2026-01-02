@@ -37,6 +37,7 @@ class SongController:
             token_payload=token_payload
         )
 
+
     @api_view(['GET'])
     def get(request: Request) -> Response:
         serializer = SongResponseSerializer(data=request.query_params)
@@ -55,4 +56,6 @@ class SongController:
         serializer = SongUpdateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        params = serializer.to_dto()_
+        params = serializer.to_dto()
+
+
