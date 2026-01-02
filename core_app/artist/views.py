@@ -24,100 +24,59 @@ from core_app.common.decorators import standard_response
 class ArtistView:
 
     @api_view(['GET'])
+    @standard_response("Artists fetched successfully")
     def artist_list(self, request):
         artists = get_all_artists()
         serializer = ArtistResponseSerializer(artists, many=True)
-
-        # map using utils
         mapped = ArtistUtils().mapper(serializer.data)
-
-        return Response(
-            data={"message": "Artists fetched successfully", "data": mapped},
-            status=status.HTTP_200_OK
-        )
+        return {"data": mapped, "message": "Artists fetched successfully"}
 
     @api_view(['POST'])
+    @standard_response("Artist successfully created")
     def artist_create(self, request):
         serializer = ArtistCreateRequestSerializer(data=request.data)
-
         if not serializer.is_valid():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={
-                    "status": False,
-                    "message": "Validation failed",
-                    "errors": serializer.errors
-                }
-            )
+            return {"success": False, "message": "Validation failed", "errors": serializer.errors}
 
         dto = serializer.to_dto()
         create_artist(dto.__dict__)
-
-        return Response(
-            status=status.HTTP_201_CREATED,
-            data=CommonUtils.success_response(
-                message="Artist successfully created"
-            )
-        )
+        return {"message": "Artist successfully created"}
 
     @api_view(['GET'])
+    @standard_response("Artist fetched successfully")
     def artist_detail(self, request, id):
         try:
             artist = get_artist(id)
         except Exception:
-            return Response(
-                {"message": "Artist not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return {"success": False, "message": "Artist not found"}
 
         serializer = ArtistResponseSerializer(artist)
-        return Response(
-            data={"message": "Artist fetched successfully", "data": serializer.data},
-            status=status.HTTP_200_OK
-        )
+        return {"data": serializer.data, "message": "Artist fetched successfully"}
 
     @api_view(['PUT'])
+    @standard_response("Artist updated successfully")
     def artist_update(self, request, id):
         try:
             existing = get_artist(id)
         except Exception:
-            return Response(
-                {"message": "Artist not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return {"success": False, "message": "Artist not found"}
 
         serializer = ArtistUpdateRequestSerializer(data=request.data)
-
         if not serializer.is_valid():
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return {"success": False, "errors": serializer.errors}
 
         dto = serializer.to_dto(existing)
         updated = update_artist(id, dto.__dict__)
-
-        return Response(
-            data={
-                "message": "Artist updated successfully",
-                "data": ArtistResponseSerializer(updated).data
-            },
-            status=status.HTTP_200_OK
-        )
+        return {"data": ArtistResponseSerializer(updated).data, "message": "Artist updated successfully"}
 
     @api_view(['DELETE'])
+    @standard_response("Artist successfully deleted")
     def artist_delete(self, request, id):
         try:
             delete_artist(id)
         except Exception:
-            return Response(
-                {"message": "Artist not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return {"success": False, "message": "Artist not found"}
 
-        return Response(
-            status=status.HTTP_200_OK,
-            data=CommonUtils.success_response(
-                message="Artist successfully deleted"
-            )
-        )
+        return {"message": "Artist successfully deleted"}
+
+
