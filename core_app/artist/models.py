@@ -4,6 +4,7 @@ from django.db import models
 class Artist(models.Model):
     name = models.CharField(max_length=255)
     bio = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -11,25 +12,47 @@ class Artist(models.Model):
 
 
 
-def get_all_artists():
-    return Artist.objects.all()
+def get_all_artists() -> list:
+    return Artist.objects.filter(is_active=True).values(
+        "id",
+        "name",
+        "bio",
+        "created_at"
+    ) or []
 
 
-def create_artist(data):
-    return Artist.objects.create(**data)
+
+def create_artist(self, name: str, bio: str):
+    self.name = name
+    self.bio = bio
+    self.save()
+    return self
+
+def get_artist(artist_id: int = None, single: bool = False) -> list | dict:
+    if single:
+        return Artist.objects.filter(is_active=True).values(
+            "id",
+            "name",
+            "bio",
+            "created_at"
+        ).first() or []
+    return Artist.objects.filter(is_active=True).values(
+        "id",
+        "name",
+        "bio",
+        "created_at"
+    ) or []
 
 
-def get_artist(id):
-    return Artist.objects.get(pk=id)
+def update_artist(self, name: str = None, bio: str = None):
+    if name is not None:
+        self.name = name
+    if bio is not None:
+        self.bio = bio
+    self.save()
+    return self
 
 
-def update_artist(id, data):
-    artist = Artist.objects.get(pk=id)
-    for key, value in data.items():
-        setattr(artist, key, value)
-    artist.save()
-    return artist
+def delete_artist(artist_id: int) -> None:
+    Artist.objects.filter(id=artist_id).update(is_active=False)
 
-
-def delete_artist(id):
-    Artist.objects.get(pk=id).delete()

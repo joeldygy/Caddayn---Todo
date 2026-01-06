@@ -3,7 +3,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from core_app.artist.views import ArtistView
-from core_app.artist.serializer.artist_request import (
+from core_app.artist.serializer.create import (
     ArtistCreateRequestSerializer,
     ArtistUpdateRequestSerializer
 )

@@ -11,7 +11,7 @@ from core_app.artist.models import (
     delete_artist
 )
 
-from core_app.artist.serializer.artist_request import (
+from core_app.artist.serializer.create import (
     ArtistCreateRequestSerializer,
     ArtistUpdateRequestSerializer
 )
