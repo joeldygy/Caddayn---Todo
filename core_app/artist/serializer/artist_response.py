@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core_app.artist.dataclass import ArtistDTO
+from core_app.artist.dataclass.create import ArtistDTO
 
 
 class ArtistResponseSerializer(serializers.Serializer):

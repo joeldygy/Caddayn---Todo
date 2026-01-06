@@ -2,6 +2,6 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ArtistDTO:
+class ArtistCreateRequest:
     name: str
     bio: str = ""
